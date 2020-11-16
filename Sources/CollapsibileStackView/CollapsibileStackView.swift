@@ -10,8 +10,8 @@ import Foundation
 import UIKit
 
 public protocol CollapsibleStackViewDatasource: class {
-    func cardStack(_ collapsibleStackView: CollapsibleStackView, viewForIndex index: Int) -> UIView
-    func cardStack(_ collapsibleStackView: CollapsibleStackView, headerForIndex index: Int) -> UIView
+    func cardStack(_ collapsibleStackView: CollapsibleStackView, viewForIndex index: Int, state: CollapsibleStackViewItemState) -> UIView
+    func cardStack(_ collapsibleStackView: CollapsibleStackView, headerForIndex index: Int, state: CollapsibleStackViewItemState) -> UIView
     func numberOfItems(in collapsibleStackView: CollapsibleStackView) -> Int
     func cardStack(_ collapsibleStackView: CollapsibleStackView, footerForIndex index: Int) -> UIView?
 }
@@ -48,12 +48,19 @@ public class CollapsibleStackView: UIStackView {
         super.init(frame: .zero)
         self.axis = .vertical
         self.addArrangedSubview(bodyStackView)
-        
+                
     }
+    
     
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    private func state(for index: Int) -> CollapsibleStackViewItemState {
+        let item = self.bodyStackView.arrangedSubviews[index] as! CollapsibleStackViewItem
+        return item.state
+    }
+    
     
 }
 
@@ -64,8 +71,8 @@ extension CollapsibleStackView {
         guard let datasource = datasource else { return }
         numberOfItems = datasource.numberOfItems(in: self)
         
-        let header = datasource.cardStack(self, headerForIndex: index)
-        let body = datasource.cardStack(self, viewForIndex: index)
+        let header = datasource.cardStack(self, headerForIndex: index, state: .expanded)
+        let body = datasource.cardStack(self, viewForIndex: index, state: .expanded)
         
         
         let collapsibleStackView = CollapsibleStackViewItem([header,body], makeHeightZero: false, delegate: self)
@@ -86,8 +93,8 @@ extension CollapsibleStackView {
         
         index += 1
         guard let datasource = datasource else { return }
-        let header = datasource.cardStack(self, headerForIndex: index)
-        let body = datasource.cardStack(self, viewForIndex: index)
+        let header = datasource.cardStack(self, headerForIndex: index, state: .expanded)
+        let body = datasource.cardStack(self, viewForIndex: index, state: .expanded)
         self.footer?.removeFromSuperview()
         
         let collapsibleStackView = CollapsibleStackViewItem([header,body], delegate: self)
@@ -103,20 +110,38 @@ extension CollapsibleStackView {
         
     }
     
-    public func reloadHeader(at index: Int) {
-        guard let newHeader = datasource?.cardStack(self, headerForIndex: index) else { return }
+    public func reloadHeader(at index: Int,shouldAnimate: Bool = true) {
+        guard let newHeader = datasource?.cardStack(self, headerForIndex: index,state: self.state(for: index)) else { return }
         let container = (self.bodyStackView.arrangedSubviews[index] as! CollapsibleStackViewItem)
         let view = container.arrangedSubviews[0]
-        view.removeFromSuperview()
-        container.insertArrangedSubview(newHeader, at: 0)
+        
+        
+        if shouldAnimate {
+            view.alpha = 1
+            UIView.animate(withDuration: 0.2, animations: {
+                view.alpha = 0
+            }) { (_) in
+                view.removeFromSuperview()
+                container.insertArrangedSubview(newHeader, at: 0)
+                newHeader.alpha = 0
+                UIView.animate(withDuration: 0.2, animations: {
+                    newHeader.alpha = 1
+                })
+            }
+            
+        } else {
+            view.removeFromSuperview()
+            container.insertArrangedSubview(newHeader, at: 0)
+        }
     }
     
-    public func reloadBody(at index: Int) {
-        guard let newBody = datasource?.cardStack(self, viewForIndex: index) else { return}
+    public func reloadBody(at index: Int,shouldAnimate: Bool = true) {
+        guard let newBody = datasource?.cardStack(self, viewForIndex: index, state: .collapsed) else { return}
         let container = (self.bodyStackView.arrangedSubviews[index] as! CollapsibleStackViewItem)
         let body = container.arrangedSubviews[1]
         body.removeFromSuperview()
         container.insertArrangedSubview(newBody, at: 1)
+      
     }
     
 }
@@ -148,6 +173,15 @@ extension CollapsibleStackView {
         let viewToExpand = self.bodyStackView.arrangedSubviews[self.index] as! CollapsibleStackViewItem
         viewToExpand.state = .partialExpanded
         
+        collapseAnimationSync.notify(queue: .main) {
+            if let footer = self.footer {
+                self.addArrangedSubview(footer)
+            }
+            print("Group called")
+            self.delegate?.cardStack(self, didSelectItemAt: self.index)
+        }
+
+        
     }
 }
 
@@ -162,13 +196,10 @@ extension CollapsibleStackView: AnimationDelegate {
     
     func didFinishCollapseAnimation() {
         collapseAnimationSync.leave()
-        
-        collapseAnimationSync.notify(queue: .main) {
-            if let footer = self.footer {
-                self.addArrangedSubview(footer)
-            }
-            self.delegate?.cardStack(self, didSelectItemAt: self.index)
-        }
+       
+
     }
+    
+    
     
 }

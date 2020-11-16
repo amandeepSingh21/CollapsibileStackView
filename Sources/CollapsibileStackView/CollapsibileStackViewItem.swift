@@ -76,7 +76,7 @@ public class CollapsibleStackViewItem: UIStackView {
     private func expand() {
         self.superview?.superview?.layoutIfNeeded()
         
-        UIView.animate(withDuration: 1, animations: {
+        UIView.animate(withDuration: 0.4, animations: {
             self.zeroHeightConstraint?.isActive = self.state.isZeroHeightConstraintActive
             self.superview?.superview?.layoutIfNeeded()
         }) { (_) in
@@ -90,7 +90,7 @@ public class CollapsibleStackViewItem: UIStackView {
     
         self.superview?.superview?.layoutIfNeeded()
         body.alpha = 1
-        UIView.animate(withDuration: 1, animations: {
+        UIView.animate(withDuration: 0.4, animations: {
             body.alpha = 0
               self.bodyZeroHeightConstraint?.isActive = self.state.isZeroHeightConstraintActive
                       self.superview?.superview?.layoutIfNeeded()
@@ -103,21 +103,23 @@ public class CollapsibleStackViewItem: UIStackView {
         self.alpha = 1
         self.superview?.superview?.layoutIfNeeded()
         self.bodyZeroHeightConstraint?.isActive = !self.state.isZeroHeightConstraintActive
-        UIView.animate(withDuration: 1, animations: {
+        UIView.animate(withDuration: 0.4, animations: {
              self.alpha = 0
             self.zeroHeightConstraint?.isActive = self.state.isZeroHeightConstraintActive
             self.superview?.superview?.layoutIfNeeded()
-        }) { (_) in
+        }) { (completed) in
             self.removeFromSuperview()
             self.delegate?.didFinishCollapseAnimation()
         }
+        
+       
     }
     
     private func partiallyExpand() {
         guard let body = self.arrangedSubviews.last else { return }
         body.alpha = 0
         self.superview?.superview?.layoutIfNeeded()
-        UIView.animate(withDuration: 1) {
+        UIView.animate(withDuration: 0.4) {
             body.alpha = 1
             self.bodyZeroHeightConstraint?.isActive = false
             self.superview?.superview?.layoutIfNeeded()
