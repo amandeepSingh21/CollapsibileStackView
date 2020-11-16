@@ -1,4 +1,4 @@
-## 1. Collapsibile StackView Consumer App
+## 1. Collapsibile StackView Package
 
 
 ## 2. Requirements
