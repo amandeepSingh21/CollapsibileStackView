@@ -177,7 +177,6 @@ extension CollapsibleStackView {
             if let footer = self.footer {
                 self.addArrangedSubview(footer)
             }
-            print("Group called")
             self.delegate?.cardStack(self, didSelectItemAt: self.index)
         }
 
@@ -196,10 +195,7 @@ extension CollapsibleStackView: AnimationDelegate {
     
     func didFinishCollapseAnimation() {
         collapseAnimationSync.leave()
-       
 
     }
-    
-    
     
 }
