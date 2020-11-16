@@ -1,10 +1,5 @@
-![](docs/stackview.gif)
-
 ## 1. Collapsibile StackView Consumer App
 
-Assignment by [Amandeep](mailto:amandeep.saluja21@gmail.com).
-
-![](docs/Screenshot.png)
 
 ## 2. Requirements
 - iOS 11.0+
@@ -12,18 +7,34 @@ Assignment by [Amandeep](mailto:amandeep.saluja21@gmail.com).
 - [SPM]
 
 
-## 3. Getting Started
-- Open `CollapsibleStackViewConsumer.xcodeproj` in Xcode 11.3.1+
-- Wait for SPM to fetch the dependecy and build the project
+## 3. How To Use
+Basic:
+```
+import CollapsibileStackView
 
-## 4. Problem Statements
-[Problem Statements](docs/problem_statement.pdf)
+let collapsibleStackView = CollapsibleStackView()
 
-## 5. Swift
-This project is build using Swift 5.
+self.view.addSubview(collapsibleStackView)
+collapsibleStackView.delegate = self
+collapsibleStackView.datasource = self
+```
 
-## 6. Architecture
+To show the next card call:
+```
+self.collapsibleStackView.showNextCard()
+```
+
+To reload the header or body:
+```
+collapsibleStackView.reloadBody(at: index)
+collapsibleStackView.reloadHeader(at: index)
+```
+Note: Caller can provide a header view and a body view in the data source. Similarly touch events can be handeled via the delegate.
+
+
+## 4. Architecture
 - This project is heavily inspired from UICollectionView/UITableView APIs.
 - Delegates and Datasource pattern is used to provide a customization point for the caller.
 - StackView is encapsulated inside a SPM package.
 - Four states: Expanded, Collapsed, PartiallyCollapsed and PartiallyExpanded are used to meet the requirements.
+
